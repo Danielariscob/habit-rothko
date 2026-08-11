@@ -54,7 +54,7 @@ export default function HabitsView({ habits, addHabit, updateHabit, deleteHabit,
       {/* portada — el cuadro de Rothko usado como cabecera */}
       <div className="relative h-40 w-full overflow-hidden">
         <img
-          src="/icons/rothko-cover.jpg"
+          src={`${import.meta.env.BASE_URL}icons/rothko-cover.jpg`}
           alt="Portada"
           className="h-full w-full object-cover"
         />
