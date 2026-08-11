@@ -96,6 +96,23 @@ export function useHabits() {
     [habitsForDay, isCompleted]
   )
 
+  const exportData = useCallback(() => {
+    return JSON.stringify(
+      { version: 1, exportedAt: new Date().toISOString(), habits, completions },
+      null,
+      2
+    )
+  }, [habits, completions])
+
+  const importData = useCallback((raw) => {
+    const data = JSON.parse(raw)
+    if (!Array.isArray(data.habits) || typeof data.completions !== 'object') {
+      throw new Error('Archivo inválido')
+    }
+    setHabits(data.habits)
+    setCompletions(data.completions || {})
+  }, [])
+
   return useMemo(
     () => ({
       habits,
@@ -107,7 +124,21 @@ export function useHabits() {
       habitsForDay,
       dailyProgress,
       weeklyProgress,
+      exportData,
+      importData,
     }),
-    [habits, addHabit, updateHabit, deleteHabit, toggleCompletion, isCompleted, habitsForDay, dailyProgress, weeklyProgress]
+    [
+      habits,
+      addHabit,
+      updateHabit,
+      deleteHabit,
+      toggleCompletion,
+      isCompleted,
+      habitsForDay,
+      dailyProgress,
+      weeklyProgress,
+      exportData,
+      importData,
+    ]
   )
 }

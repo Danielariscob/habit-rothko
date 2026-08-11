@@ -1,14 +1,53 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Plus, Pencil, Trash2 } from 'lucide-react'
+import { Plus, Pencil, Trash2, Download, Upload, Check } from 'lucide-react'
 import IconRenderer from './IconRenderer'
 import HabitForm from './HabitForm'
 import { PALETTE } from '../data/palette'
-import { DIAS } from '../utils/dates'
+import { DIAS, toISODate } from '../utils/dates'
 
-export default function HabitsView({ habits, addHabit, updateHabit, deleteHabit }) {
+export default function HabitsView({ habits, addHabit, updateHabit, deleteHabit, exportData, importData }) {
   const [adding, setAdding] = useState(false)
   const [editingId, setEditingId] = useState(null)
+  const [notice, setNotice] = useState(null)
+  const fileInputRef = useRef(null)
+
+  const showNotice = (text) => {
+    setNotice(text)
+    setTimeout(() => setNotice(null), 2200)
+  }
+
+  const handleExport = () => {
+    const json = exportData()
+    const blob = new Blob([json], { type: 'application/json' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `bandas-backup-${toISODate(new Date())}.json`
+    document.body.appendChild(a)
+    a.click()
+    a.remove()
+    URL.revokeObjectURL(url)
+    showNotice('Copia descargada')
+  }
+
+  const handleImportClick = () => fileInputRef.current?.click()
+
+  const handleFileChange = async (e) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    const text = await file.text()
+    const ok = window.confirm('Esto va a reemplazar tus hábitos y marcas actuales por los del archivo. ¿Continuar?')
+    if (ok) {
+      try {
+        importData(text)
+        showNotice('Datos restaurados')
+      } catch {
+        showNotice('El archivo no es válido')
+      }
+    }
+    e.target.value = ''
+  }
 
   return (
     <div className="pb-28">
@@ -24,6 +63,41 @@ export default function HabitsView({ habits, addHabit, updateHabit, deleteHabit 
           <p className="font-display text-2xl text-white drop-shadow">Tus hábitos</p>
         </div>
       </div>
+
+      <div className="px-5 pt-4 flex gap-2.5">
+        <button
+          onClick={handleExport}
+          className="flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-white/[0.06] py-2.5 text-xs text-rothko-cream/70"
+        >
+          <Download size={14} /> Exportar copia
+        </button>
+        <button
+          onClick={handleImportClick}
+          className="flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-white/[0.06] py-2.5 text-xs text-rothko-cream/70"
+        >
+          <Upload size={14} /> Importar copia
+        </button>
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="application/json"
+          onChange={handleFileChange}
+          className="hidden"
+        />
+      </div>
+
+      <AnimatePresence>
+        {notice && (
+          <motion.div
+            initial={{ opacity: 0, y: -6 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -6 }}
+            className="mx-5 mt-2 flex items-center gap-1.5 rounded-lg bg-rothko-green/20 px-3 py-1.5 text-xs text-rothko-cream"
+          >
+            <Check size={12} /> {notice}
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <div className="px-5 pt-4 flex flex-col gap-3">
         {habits.map((h) => (

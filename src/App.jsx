@@ -42,6 +42,8 @@ export default function App() {
               addHabit={habitsData.addHabit}
               updateHabit={habitsData.updateHabit}
               deleteHabit={habitsData.deleteHabit}
+              exportData={habitsData.exportData}
+              importData={habitsData.importData}
             />
           )}
         </motion.div>
